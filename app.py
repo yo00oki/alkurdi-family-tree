@@ -5,7 +5,7 @@ import os
 # إعدادات الصفحة بمظهر عريض وتثبيت القائمة الجانبية مغلقة تماماً
 st.set_page_config(page_title="شجرة عائلة الكردي", layout="wide", initial_sidebar_state="collapsed")
 
-# هندسة التنسيق الجذري: عزل تام للأسماء، إجبار الأسود الداكن وتصفير الفراغات المتفاوتة
+# هندسة التنسيق النهائي: تلوين النص العربي الصافي بالأسود وحظر الكلمات الإنجليزية والأيقونات المشوهة
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&display=swap');
@@ -70,22 +70,27 @@ st.markdown("""
         margin: 0px !important;
     }
 
-    /* الستايل السحري الحامي والمعزول للاسم العربي فقط لمنع تداخل أي كلمات إنجليزية وإجباره على الأسود الفخم */
-    .grand-bold-name {
+    /* التوجيه الصارم: إخفاء أيقونات وسهام الـ expander والكلمات الملتصقة بها تماماً لمنع التشوه */
+    .stExpander summary svg, .stExpander summary [data-testid="stExpanderToggleIcon"] {
+        display: none !important;
+    }
+    
+    /* إجبار النص العربي النقي المكتوب داخل عنوان الصندوق على اللون الأسود الداكن العريض والواضح جداً في الجوال */
+    .stExpander summary p, .stExpander summary text-wrapper, .stExpander summary div, .stMarkdown p {
         font-family: 'Cairo', sans-serif !important;
         font-weight: 900 !important;
         font-size: 16px !important;
-        color: #111111 !important; /* أسود صريح داكن جداً وحاد */
+        color: #111111 !important; /* أسود صريح داكن جداً وحاد 100% يمنع بهتان الجوال */
         text-align: right !important;
-        display: block !important;
         margin: 0px !important;
-        padding: 0px !important;
+    }
+    
+    /* حماية ألوان نصوص الهيدر العلوي لكي لا تتأثر باللون الأسود */
+    .header-container .main-title, .header-container .subtitle {
+        text-align: center !important;
     }
     
     /* إخفاء سهم الفتح تماماً للأعضاء بلا أطفال لتوحيد المسافات والمظهر */
-    .leaf-node-container button [data-testid="stExpanderToggleIcon"] {
-        display: none !important; 
-    }
     .leaf-node-container button {
         pointer-events: none !important; 
         cursor: default !important;
@@ -176,7 +181,7 @@ if selected_member:
     """)
 st.markdown("</div>", unsafe_allow_html=True)
 
-# 3. الدالة البرمجية المحدثة كلياً لتعزل وتجبر تلوين الخط الأسود النقي
+# 3. الدالة البرمجية النظيفة تماماً والصافية من أي أكواد ورموز
 def display_accordion_tree(parent_id, df_data):
     children = df_data[df_data['Parent_ID'] == parent_id]
     
@@ -188,17 +193,17 @@ def display_accordion_tree(parent_id, df_data):
         
         prefix_emoji = "👨" if gen == 2 else "👦" if gen == 3 else "👶"
         
-        # إنشاء الاسم داخل ديف مستقل تماماً ومحصن ضد التداخل وبأعلى درجة وضوح سوداء
-        label_html = f"<div class='grand-bold-name'>{prefix_emoji} {name_str}{status_str}</div>"
+        # نص عربي صافي خالص 100% بدون أي وسوم تفادياً للرموز المشوهة
+        label_text = f"{prefix_emoji} {name_str}{status_str}"
         
         has_children = not df_data[df_data['Parent_ID'] == child_id].empty
         
         if has_children:
-            with st.expander(label_html, expanded=False):
+            with st.expander(label_text, expanded=False):
                 display_accordion_tree(child_id, df_data)
         else:
             st.markdown("<div class='leaf-node-container'>", unsafe_allow_html=True)
-            with st.expander(label_html, expanded=False):
+            with st.expander(label_text, expanded=False):
                 pass 
             st.markdown("</div>", unsafe_allow_html=True)
 
@@ -209,8 +214,7 @@ root_row = df[df['Parent_ID'] == '']
 if not root_row.empty:
     root_id = root_row['ID'].iloc[0]
     
-    root_label = "<div class='grand-bold-name'>👑 عبد العزيز نعمان الكردي رحمه الله</div>"
-    with st.expander(root_label, expanded=True):
+    with st.expander("👑 عبد العزيز نعمان الكردي رحمه الله", expanded=True):
         display_accordion_tree(root_id, df)
 else:
     st.error("تأكد من وجود بيانات الجد الأكبر في ملف الإكسل.")
