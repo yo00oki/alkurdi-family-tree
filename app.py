@@ -2,13 +2,13 @@ import streamlit as st
 import pandas as pd
 import os
 
-# إعدادات الصفحة بمظهر فخم وعريض وتثبيت القائمة الجانبية مغلقة تماماً
+# إعدادات الصفحة بمظهر عريض وتثبيت القائمة الجانبية مغلقة تماماً
 st.set_page_config(page_title="شجرة عائلة الكردي", layout="wide", initial_sidebar_state="collapsed")
 
-# التنسيق الشامل الحاسم المتوافق مع الجوالات واللابتوب (نصوص سوداء داكنة وإلغاء الفراغات)
+# التنسيق النهائي الحاسم: حظر الكلمات الملتصقة وتثبيت لون الأسماء أسود داكن ونظيف جداً
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&display=swap');
 
     .stApp {
         background-color: #f7f5f0;
@@ -19,17 +19,17 @@ st.markdown("""
         font-family: 'Cairo', sans-serif;
     }
     
-    /* إخفاء أي بقايا للقائمة الجانبية في الجوال تماماً لمنع ظهور الخطوط المزعجة */
+    /* حظر القائمة الجانبية المزعجة في الجوال */
     [data-testid="stSidebar"], [data-testid="collapsedControl"] {
         display: none !important;
     }
     
-    /* هيدر تفصيلي علوي فخم متناسق للشاشات الصغيرة والكبيرة */
+    /* هيدر علوي متموضع في المنتصف */
     .header-container {
         background-color: #1b4332;
         padding: 20px 15px;
         border-radius: 12px;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         text-align: center !important;
         display: flex;
@@ -44,47 +44,44 @@ st.markdown("""
         font-weight: 900;
         font-size: 32px;
         margin: 0 auto;
-        text-align: center !important;
     }
     .subtitle {
         color: #b7e4c7;
         font-size: 15px;
-        font-family: 'Cairo', sans-serif;
         font-weight: 600;
         margin-top: 8px;
-        margin-bottom: 0;
         text-align: center !important;
     }
     
-    /* توحيد التباعد وإجبار ظهور الكلمات باللون الأسود الداكن الواضح جداً */
+    /* توحيد صناديق الأسماء وتصفير الفراغات المتفاوتة */
     .stExpander {
         background-color: #ffffff !important;
         border: 1px solid #e9e5db !important;
         border-radius: 8px !important;
         padding: 0px !important;
         margin-top: 0px !important;
-        margin-bottom: 6px !important; 
+        margin-bottom: 6px !important; /* مسافة موحدة 100% بالبكسل */
         box-shadow: 0 2px 4px rgba(0,0,0,0.01) !important;
-        text-align: right !important;
     }
     
-    .stExpander [data-testid="stExpanderDetails"] {
-        padding-top: 4px !important;
-        padding-bottom: 4px !important;
-        margin: 0px !important;
+    /* الحل الجذري: حظر الكلمات المخفية مثل keyboard_arrow من الظهور كمتغيرات نصية */
+    .stExpander summary svg, .stExpander summary span div {
+        color: #b7e4c7 !important; /* تلوين السهم الافتراضي فقط */
     }
     
-    /* إجبار الاسم على اللون الأسود الصريح ليكون واضحاً في الجوال */
-    .stExpander p, .stExpander span, .stExpander label, .stMarkdown p {
+    /* حماية وتوضيح النص العربي المخصص المكتوب داخل البطاقة بشكل معزول */
+    .custom-name-style {
         font-family: 'Cairo', sans-serif !important;
         font-weight: 800 !important;
         font-size: 16px !important;
-        color: #111111 !important; /* أسود داكن صريح وممتاز للعين */
-        margin: 0px !important;
+        color: #111111 !important; /* أسود صريح حاد وواضح جداً للعين في الجوال */
         text-align: right !important;
+        display: inline-block !important;
+        margin: 0px !important;
+        padding: 0px !important;
     }
     
-    /* ستايل البطاقات بدون أطفال لتوحيد المسافات وحذف الأسهم */
+    /* إخفاء سهم الفتح تماماً للأعضاء بلا أطفال لتأكيد عدم انحناء أي شيء فارغ */
     .leaf-node-container button [data-testid="stExpanderToggleIcon"] {
         display: none !important; 
     }
@@ -93,21 +90,19 @@ st.markdown("""
         cursor: default !important;
     }
     
-    /* تنسيق صندوق البحث الجديد في الأعلى */
+    /* تنسيق صندوق البحث الذكي الموحد */
     .search-box-holder {
         background-color: #ffffff;
         padding: 15px;
         border-radius: 10px;
         border: 1px solid #e9e5db;
-        margin-bottom: 20px;
-        text-align: right;
+        margin-bottom: 25px;
     }
     .stTextInput input { 
         text-align: right; 
         direction: rtl; 
         border: 2px solid #b7e4c7;
         border-radius: 8px; 
-        font-family: 'Cairo', sans-serif;
         color: #111111 !important;
     }
     </style>
@@ -152,10 +147,10 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# 2. وضع صندوق البحث الذكي في الواجهة الرئيسية بالأعلى (بدل القائمة الجانبية المزعجة للجوال)
+# 2. صندوق البحث الذكي الموحد والنظيف
 st.markdown("<div class='search-box-holder'>", unsafe_allow_html=True)
-st.markdown("<p style='font-size: 18px; font-weight: bold; color: #1b4332; margin-bottom: 8px !important;'>🔍 البحث الذكي في العائلة:</p>", unsafe_allow_html=True)
-search_query = st.text_input("", placeholder="اكتب الاسم هنا للبحث الفوري...")
+st.markdown("<p style='font-size: 16px; font-weight: bold; color: #1b4332; margin-bottom: 6px !important;'>🔍 البحث الذكي في العائلة:</p>", unsafe_allow_html=True)
+search_query = st.text_input("البحث", label_visibility="collapsed", placeholder="اكتب الاسم هنا للبحث الفوري...")
 
 selected_member = None
 if search_query:
@@ -179,7 +174,7 @@ if selected_member:
     """)
 st.markdown("</div>", unsafe_allow_html=True)
 
-# 3. الدالة البرمجية المحدثة تماماً لتوحيد التباعد والألوان
+# 3. الدالة البرمجية المعزولة كلياً لمنع تداخل الحروف وتوحيد المسافات بالملي
 def display_accordion_tree(parent_id, df_data):
     children = df_data[df_data['Parent_ID'] == parent_id]
     
@@ -190,27 +185,31 @@ def display_accordion_tree(parent_id, df_data):
         gen = row['Generation']
         
         prefix_emoji = "👨" if gen == 2 else "👦" if gen == 3 else "👶"
-        label_text = f"{prefix_emoji} {name_str}{status_str}"
+        
+        # كتابة الاسم داخل كود HTML معزول بفئة مخصصة لحمايته من التداخل
+        label_html = f"<span class='custom-name-style'>{prefix_emoji} {name_str}{status_str}</span>"
         
         has_children = not df_data[df_data['Parent_ID'] == child_id].empty
         
         if has_children:
-            with st.expander(label_text, expanded=False):
+            with st.expander(label_html, expanded=False):
                 display_accordion_tree(child_id, df_data)
         else:
             st.markdown("<div class='leaf-node-container'>", unsafe_allow_html=True)
-            with st.expander(label_text, expanded=False):
+            with st.expander(label_html, expanded=False):
                 pass 
             st.markdown("</div>", unsafe_allow_html=True)
 
-# عرض شجرة عائلة الكردي الموحدة والواضحة
+# عرض الشجرة الشاملة والنظيفة
 st.markdown("<h3 style='text-align: right; color: #1b4332; margin-top: 5px; margin-bottom: 10px; font-size: 20px;'>🌿 تصفح أفرع العائلة:</h3>", unsafe_allow_html=True)
 
 root_row = df[df['Parent_ID'] == '']
 if not root_row.empty:
     root_id = root_row['ID'].iloc[0]
     
-    with st.expander("👑 عبد العزيز نعمان الكردي رحمه الله", expanded=True):
+    # رأس القائمة للجد الأكبر محمي ومعزول
+    root_label = "<span class='custom-name-style'>👑 عبد العزيز نعمان الكردي رحمه الله</span>"
+    with st.expander(root_label, expanded=True):
         display_accordion_tree(root_id, df)
 else:
     st.error("تأكد من وجود بيانات الجد الأكبر في ملف الإكسل.")
