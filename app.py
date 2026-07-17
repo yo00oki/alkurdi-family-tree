@@ -5,7 +5,7 @@ import os
 # إعدادات الصفحة بمظهر عريض وتثبيت القائمة الجانبية مغلقة تماماً
 st.set_page_config(page_title="شجرة عائلة الكردي", layout="wide", initial_sidebar_state="collapsed")
 
-# هندسة الـ CSS الحاسمة: توحيد المسافات تماماً وإجبار اللون الأسود الصريح ومنع الرموز المتداخلة
+# هندسة الـ CSS الحاسمة: عزل الأيقونات كلياً وتلوين النص العربي المكتوب بالأسود الداكن الموحد
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&display=swap');
@@ -19,7 +19,7 @@ st.markdown("""
         font-family: 'Cairo', sans-serif;
     }
     
-    /* حظر القائمة الجانبية المزعجة في الجوال والخطوط الفاصلة */
+    /* حظر القائمة الجانبية تماماً لمنع أي خطوط فاصلة في الجوال */
     [data-testid="stSidebar"], [data-testid="collapsedControl"] {
         display: none !important;
     }
@@ -53,29 +53,34 @@ st.markdown("""
         text-align: center !important;
     }
     
-    /* توحيد صناديق الأسماء تماماً وتثبيت التباعد كالمسطرة */
+    /* توحيد صناديق الأسماء وتثبيت التباعد بدقة متناهية كالمسطرة */
     .stExpander {
         background-color: #ffffff !important;
         border: 1px solid #e9e5db !important;
         border-radius: 8px !important;
         padding: 0px !important;
-        
-        /* تصفير الهوامش العلوية وجعل التباعد السفلي 6 بكسل ثابتاً بين كل الإطارات دون مليمتر واحد تفاوت */
         margin-top: 0px !important;
-        margin-bottom: 6px !important; 
+        margin-bottom: 6px !important; /* مسافة موحدة وثابتة تماماً */
         box-shadow: 0 2px 4px rgba(0,0,0,0.01) !important;
     }
     
-    /* إجبار محرك الـ Expander على جعل كافة العناوين والنصوص سوداء داكنة جداً وحادة في الجوال */
-    .stExpander p, .stExpander span, .stExpander text, .stExpander summary, .stMarkdown p {
+    /* الفصل والعزل الحاسم: تلوين وتكبير العنوان المكتوب فقط ومنع ظهور الأكواد الإنجليزية فوقه */
+    [data-testid="stWidgetLabel"] p {
         font-family: 'Cairo', sans-serif !important;
-        font-weight: 800 !important;
+        font-weight: 900 !important;
         font-size: 16px !important;
-        color: #111111 !important; /* أسود ناصع وصريح 100% */
+        color: #111111 !important; /* أسود داكن صريح وحاد جداً للعين في الجوال */
         text-align: right !important;
+        margin: 0px !important;
     }
     
-    /* إخفاء سهم الفتح للأعضاء بلا أطفال مع بقاء نفس أبعاد وتنسيق الصندوق الموحد */
+    /* حماية صندوق التصفح السفلي والعناوين العادية للبطاقات الشخصية لتظل سوداء واضحة */
+    .search-box-holder p, .stMarkdown p {
+        color: #111111 !important;
+        font-weight: 700 !important;
+    }
+    
+    /* إخفاء سهم الفتح تماماً للأعضاء بلا أطفال لتوحيد المسافات والمظهر */
     .leaf-node-container button [data-testid="stExpanderToggleIcon"] {
         display: none !important; 
     }
@@ -84,7 +89,7 @@ st.markdown("""
         cursor: default !important;
     }
     
-    /* تنسيق صندوق البحث الذكي الموحد */
+    /* تنسيق صندوق البحث الذكي الموحد في الأعلى */
     .search-box-holder {
         background-color: #ffffff;
         padding: 15px;
@@ -98,6 +103,7 @@ st.markdown("""
         border: 2px solid #b7e4c7;
         border-radius: 8px; 
         color: #111111 !important;
+        font-family: 'Cairo', sans-serif;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -133,7 +139,7 @@ def get_full_name(node_id):
         return f"{current['name']} بن {get_full_name(parent_id)}"
     return current['name']
 
-# الهيدر العلوي في المنتصف
+# الهيدر العلوي في المنتصف تماماً
 st.markdown("""
     <div class='header-container'>
         <div class='main-title'>🌳 شجرة عائلة الكردي</div>
@@ -168,7 +174,7 @@ if selected_member:
     """)
 st.markdown("</div>", unsafe_allow_html=True)
 
-# 3. الدالة البرمجية النظيفة تماماً من أي رموز مع توحيد المسافات المطلقة
+# 3. الدالة البرمجية النظيفة تماماً من أي رموز مع توحيد المسافات المطلقة بالبكسل
 def display_accordion_tree(parent_id, df_data):
     children = df_data[df_data['Parent_ID'] == parent_id]
     
@@ -179,8 +185,6 @@ def display_accordion_tree(parent_id, df_data):
         gen = row['Generation']
         
         prefix_emoji = "👨" if gen == 2 else "👦" if gen == 3 else "👶"
-        
-        # نصوص نقية صريحة بدون أي وسوم HTML لمنع التشوه
         label_text = f"{prefix_emoji} {name_str}{status_str}"
         
         has_children = not df_data[df_data['Parent_ID'] == child_id].empty
@@ -194,7 +198,7 @@ def display_accordion_tree(parent_id, df_data):
                 pass 
             st.markdown("</div>", unsafe_allow_html=True)
 
-# عرض الشجرة الشاملة والنظيفة
+# عرض شجرة عائلة الكردي بالقائمة المتناسقة النظيفة تماماً
 st.markdown("<h3 style='text-align: right; color: #1b4332; margin-top: 5px; margin-bottom: 10px; font-size: 20px;'>🌿 تصفح أفرع العائلة:</h3>", unsafe_allow_html=True)
 
 root_row = df[df['Parent_ID'] == '']
