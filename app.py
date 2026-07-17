@@ -5,14 +5,22 @@ import os
 # إعدادات الصفحة بمظهر عريض وتثبيت القائمة الجانبية مغلقة تماماً
 st.set_page_config(page_title="شجرة عائلة الكردي", layout="wide", initial_sidebar_state="collapsed")
 
-# هندسة الـ CSS الحاسمة: عزل الأيقونات كلياً وتلوين النص العربي المكتوب بالأسود الداكن الموحد
+# هندسة الـ CSS القاطعة: اختراق المتغيرات الافتراضية وإجبار اللون الأسود الداكن في الجوال (حتى مع الـ Dark Mode)
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&display=swap');
 
-    .stApp {
-        background-color: #f7f5f0;
+    /* تصفير متغيرات الألوان الداخلية لـ Streamlit وإجبارها على الأسود الصريح */
+    :root {
+        --text-color: #111111 !important;
+        --primary-color: #1b4332 !important;
     }
+    
+    html, body, [data-testid="stAppViewContainer"] {
+        background-color: #f7f5f0 !important;
+        color: #111111 !important;
+    }
+
     body, .main, .block-container { 
         direction: rtl; 
         text-align: right;
@@ -39,14 +47,14 @@ st.markdown("""
         width: 100%;
     }
     .main-title {
-        color: #fcfbf7;
+        color: #fcfbf7 !important;
         font-family: 'Cairo', sans-serif; 
         font-weight: 900;
         font-size: 32px;
         margin: 0 auto;
     }
     .subtitle {
-        color: #b7e4c7;
+        color: #b7e4c7 !important;
         font-size: 15px;
         font-weight: 600;
         margin-top: 8px;
@@ -64,20 +72,18 @@ st.markdown("""
         box-shadow: 0 2px 4px rgba(0,0,0,0.01) !important;
     }
     
-    /* الفصل والعزل الحاسم: تلوين وتكبير العنوان المكتوب فقط ومنع ظهور الأكواد الإنجليزية فوقه */
-    [data-testid="stWidgetLabel"] p {
+    /* إجبار كافة العناوين والنصوص داخل الصناديق والموقع على اللون الأسود الصريح والداكن جداً */
+    .stExpander p, .stExpander span, .stExpander label, .stMarkdown p, h1, h2, h3, p {
         font-family: 'Cairo', sans-serif !important;
         font-weight: 900 !important;
         font-size: 16px !important;
-        color: #111111 !important; /* أسود داكن صريح وحاد جداً للعين في الجوال */
+        color: #111111 !important; /* أسود صريح ناصع 100% يمنع بهتان الجوال */
         text-align: right !important;
-        margin: 0px !important;
     }
     
-    /* حماية صندوق التصفح السفلي والعناوين العادية للبطاقات الشخصية لتظل سوداء واضحة */
-    .search-box-holder p, .stMarkdown p {
-        color: #111111 !important;
-        font-weight: 700 !important;
+    /* حماية ألوان نصوص الهيدر العلوي لكي لا تتحول للأسود */
+    .header-container .main-title, .header-container .subtitle {
+        text-align: center !important;
     }
     
     /* إخفاء سهم الفتح تماماً للأعضاء بلا أطفال لتوحيد المسافات والمظهر */
@@ -174,14 +180,14 @@ if selected_member:
     """)
 st.markdown("</div>", unsafe_allow_html=True)
 
-# 3. الدالة البرمجية النظيفة تماماً من أي رموز مع توحيد المسافات المطلقة بالبكسل
+# 3. الدالة البرمجية النظيفة مع توحيد المسافات المطلقة بالبكسل
 def display_accordion_tree(parent_id, df_data):
     children = df_data[df_data['Parent_ID'] == parent_id]
     
     for _, row in children.iterrows():
         child_id = row['ID']
         name_str = row['name']
-        status_str = " (رحمه الله)" if row['Status'] == "متوفى" else ""
+        status_str = " (رحمه الله)" if row['Status'] == "metوفى" or row['Status'] == "متوفى" else ""
         gen = row['Generation']
         
         prefix_emoji = "👨" if gen == 2 else "👦" if gen == 3 else "👶"
@@ -198,7 +204,7 @@ def display_accordion_tree(parent_id, df_data):
                 pass 
             st.markdown("</div>", unsafe_allow_html=True)
 
-# عرض شجرة عائلة الكردي بالقائمة المتناسقة النظيفة تماماً
+# عرض شجرة عائلة الكردي بالقائمة المتناسقة النظيفة والمجبرة على اللون الداكن
 st.markdown("<h3 style='text-align: right; color: #1b4332; margin-top: 5px; margin-bottom: 10px; font-size: 20px;'>🌿 تصفح أفرع العائلة:</h3>", unsafe_allow_html=True)
 
 root_row = df[df['Parent_ID'] == '']
