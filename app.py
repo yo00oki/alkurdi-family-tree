@@ -5,7 +5,7 @@ import os
 # إعدادات الصفحة بمظهر عريض وتثبيت القائمة الجانبية مغلقة تماماً
 st.set_page_config(page_title="شجرة عائلة الكردي", layout="wide", initial_sidebar_state="collapsed")
 
-# التنسيق النهائي الحاسم: حظر الكلمات الملتصقة وتثبيت لون الأسماء أسود داكن ونظيف جداً
+# هندسة الـ CSS الحاسمة: توحيد المسافات تماماً وإجبار اللون الأسود الصريح ومنع الرموز المتداخلة
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&display=swap');
@@ -19,7 +19,7 @@ st.markdown("""
         font-family: 'Cairo', sans-serif;
     }
     
-    /* حظر القائمة الجانبية المزعجة في الجوال */
+    /* حظر القائمة الجانبية المزعجة في الجوال والخطوط الفاصلة */
     [data-testid="stSidebar"], [data-testid="collapsedControl"] {
         display: none !important;
     }
@@ -53,35 +53,29 @@ st.markdown("""
         text-align: center !important;
     }
     
-    /* توحيد صناديق الأسماء وتصفير الفراغات المتفاوتة */
+    /* توحيد صناديق الأسماء تماماً وتثبيت التباعد كالمسطرة */
     .stExpander {
         background-color: #ffffff !important;
         border: 1px solid #e9e5db !important;
         border-radius: 8px !important;
         padding: 0px !important;
+        
+        /* تصفير الهوامش العلوية وجعل التباعد السفلي 6 بكسل ثابتاً بين كل الإطارات دون مليمتر واحد تفاوت */
         margin-top: 0px !important;
-        margin-bottom: 6px !important; /* مسافة موحدة 100% بالبكسل */
+        margin-bottom: 6px !important; 
         box-shadow: 0 2px 4px rgba(0,0,0,0.01) !important;
     }
     
-    /* الحل الجذري: حظر الكلمات المخفية مثل keyboard_arrow من الظهور كمتغيرات نصية */
-    .stExpander summary svg, .stExpander summary span div {
-        color: #b7e4c7 !important; /* تلوين السهم الافتراضي فقط */
-    }
-    
-    /* حماية وتوضيح النص العربي المخصص المكتوب داخل البطاقة بشكل معزول */
-    .custom-name-style {
+    /* إجبار محرك الـ Expander على جعل كافة العناوين والنصوص سوداء داكنة جداً وحادة في الجوال */
+    .stExpander p, .stExpander span, .stExpander text, .stExpander summary, .stMarkdown p {
         font-family: 'Cairo', sans-serif !important;
         font-weight: 800 !important;
         font-size: 16px !important;
-        color: #111111 !important; /* أسود صريح حاد وواضح جداً للعين في الجوال */
+        color: #111111 !important; /* أسود ناصع وصريح 100% */
         text-align: right !important;
-        display: inline-block !important;
-        margin: 0px !important;
-        padding: 0px !important;
     }
     
-    /* إخفاء سهم الفتح تماماً للأعضاء بلا أطفال لتأكيد عدم انحناء أي شيء فارغ */
+    /* إخفاء سهم الفتح للأعضاء بلا أطفال مع بقاء نفس أبعاد وتنسيق الصندوق الموحد */
     .leaf-node-container button [data-testid="stExpanderToggleIcon"] {
         display: none !important; 
     }
@@ -174,7 +168,7 @@ if selected_member:
     """)
 st.markdown("</div>", unsafe_allow_html=True)
 
-# 3. الدالة البرمجية المعزولة كلياً لمنع تداخل الحروف وتوحيد المسافات بالملي
+# 3. الدالة البرمجية النظيفة تماماً من أي رموز مع توحيد المسافات المطلقة
 def display_accordion_tree(parent_id, df_data):
     children = df_data[df_data['Parent_ID'] == parent_id]
     
@@ -186,17 +180,17 @@ def display_accordion_tree(parent_id, df_data):
         
         prefix_emoji = "👨" if gen == 2 else "👦" if gen == 3 else "👶"
         
-        # كتابة الاسم داخل كود HTML معزول بفئة مخصصة لحمايته من التداخل
-        label_html = f"<span class='custom-name-style'>{prefix_emoji} {name_str}{status_str}</span>"
+        # نصوص نقية صريحة بدون أي وسوم HTML لمنع التشوه
+        label_text = f"{prefix_emoji} {name_str}{status_str}"
         
         has_children = not df_data[df_data['Parent_ID'] == child_id].empty
         
         if has_children:
-            with st.expander(label_html, expanded=False):
+            with st.expander(label_text, expanded=False):
                 display_accordion_tree(child_id, df_data)
         else:
             st.markdown("<div class='leaf-node-container'>", unsafe_allow_html=True)
-            with st.expander(label_html, expanded=False):
+            with st.expander(label_text, expanded=False):
                 pass 
             st.markdown("</div>", unsafe_allow_html=True)
 
@@ -207,9 +201,7 @@ root_row = df[df['Parent_ID'] == '']
 if not root_row.empty:
     root_id = root_row['ID'].iloc[0]
     
-    # رأس القائمة للجد الأكبر محمي ومعزول
-    root_label = "<span class='custom-name-style'>👑 عبد العزيز نعمان الكردي رحمه الله</span>"
-    with st.expander(root_label, expanded=True):
+    with st.expander("👑 عبد العزيز نعمان الكردي رحمه الله", expanded=True):
         display_accordion_tree(root_id, df)
 else:
     st.error("تأكد من وجود بيانات الجد الأكبر في ملف الإكسل.")
