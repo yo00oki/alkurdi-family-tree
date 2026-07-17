@@ -5,22 +5,14 @@ import os
 # إعدادات الصفحة بمظهر عريض وتثبيت القائمة الجانبية مغلقة تماماً
 st.set_page_config(page_title="شجرة عائلة الكردي", layout="wide", initial_sidebar_state="collapsed")
 
-# هندسة الـ CSS القاطعة: اختراق المتغيرات الافتراضية وإجبار اللون الأسود الداكن في الجوال (حتى مع الـ Dark Mode)
+# هندسة التنسيق الجذري: عزل تام للأسماء، إجبار الأسود الداكن وتصفير الفراغات المتفاوتة
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&display=swap');
 
-    /* تصفير متغيرات الألوان الداخلية لـ Streamlit وإجبارها على الأسود الصريح */
-    :root {
-        --text-color: #111111 !important;
-        --primary-color: #1b4332 !important;
+    .stApp {
+        background-color: #f7f5f0;
     }
-    
-    html, body, [data-testid="stAppViewContainer"] {
-        background-color: #f7f5f0 !important;
-        color: #111111 !important;
-    }
-
     body, .main, .block-container { 
         direction: rtl; 
         text-align: right;
@@ -68,22 +60,26 @@ st.markdown("""
         border-radius: 8px !important;
         padding: 0px !important;
         margin-top: 0px !important;
-        margin-bottom: 6px !important; /* مسافة موحدة وثابتة تماماً */
+        margin-bottom: 6px !important; /* مسافة موحدة وثابتة تماماً بـ 6 بكسل */
         box-shadow: 0 2px 4px rgba(0,0,0,0.01) !important;
     }
     
-    /* إجبار كافة العناوين والنصوص داخل الصناديق والموقع على اللون الأسود الصريح والداكن جداً */
-    .stExpander p, .stExpander span, .stExpander label, .stMarkdown p, h1, h2, h3, p {
+    .stExpander [data-testid="stExpanderDetails"] {
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
+        margin: 0px !important;
+    }
+
+    /* الستايل السحري الحامي والمعزول للاسم العربي فقط لمنع تداخل أي كلمات إنجليزية وإجباره على الأسود الفخم */
+    .grand-bold-name {
         font-family: 'Cairo', sans-serif !important;
         font-weight: 900 !important;
         font-size: 16px !important;
-        color: #111111 !important; /* أسود صريح ناصع 100% يمنع بهتان الجوال */
+        color: #111111 !important; /* أسود صريح داكن جداً وحاد */
         text-align: right !important;
-    }
-    
-    /* حماية ألوان نصوص الهيدر العلوي لكي لا تتحول للأسود */
-    .header-container .main-title, .header-container .subtitle {
-        text-align: center !important;
+        display: block !important;
+        margin: 0px !important;
+        padding: 0px !important;
     }
     
     /* إخفاء سهم الفتح تماماً للأعضاء بلا أطفال لتوحيد المسافات والمظهر */
@@ -180,27 +176,29 @@ if selected_member:
     """)
 st.markdown("</div>", unsafe_allow_html=True)
 
-# 3. الدالة البرمجية النظيفة مع توحيد المسافات المطلقة بالبكسل
+# 3. الدالة البرمجية المحدثة كلياً لتعزل وتجبر تلوين الخط الأسود النقي
 def display_accordion_tree(parent_id, df_data):
     children = df_data[df_data['Parent_ID'] == parent_id]
     
     for _, row in children.iterrows():
         child_id = row['ID']
         name_str = row['name']
-        status_str = " (رحمه الله)" if row['Status'] == "metوفى" or row['Status'] == "متوفى" else ""
+        status_str = " (رحمه الله)" if row['Status'] == "متوفى" else ""
         gen = row['Generation']
         
         prefix_emoji = "👨" if gen == 2 else "👦" if gen == 3 else "👶"
-        label_text = f"{prefix_emoji} {name_str}{status_str}"
+        
+        # إنشاء الاسم داخل ديف مستقل تماماً ومحصن ضد التداخل وبأعلى درجة وضوح سوداء
+        label_html = f"<div class='grand-bold-name'>{prefix_emoji} {name_str}{status_str}</div>"
         
         has_children = not df_data[df_data['Parent_ID'] == child_id].empty
         
         if has_children:
-            with st.expander(label_text, expanded=False):
+            with st.expander(label_html, expanded=False):
                 display_accordion_tree(child_id, df_data)
         else:
             st.markdown("<div class='leaf-node-container'>", unsafe_allow_html=True)
-            with st.expander(label_text, expanded=False):
+            with st.expander(label_html, expanded=False):
                 pass 
             st.markdown("</div>", unsafe_allow_html=True)
 
@@ -211,7 +209,8 @@ root_row = df[df['Parent_ID'] == '']
 if not root_row.empty:
     root_id = root_row['ID'].iloc[0]
     
-    with st.expander("👑 عبد العزيز نعمان الكردي رحمه الله", expanded=True):
+    root_label = "<div class='grand-bold-name'>👑 عبد العزيز نعمان الكردي رحمه الله</div>"
+    with st.expander(root_label, expanded=True):
         display_accordion_tree(root_id, df)
 else:
     st.error("تأكد من وجود بيانات الجد الأكبر في ملف الإكسل.")
